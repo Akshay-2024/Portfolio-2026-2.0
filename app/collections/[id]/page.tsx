@@ -2,8 +2,105 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, Search, Calendar, Film, X, Play, ChevronDown, Check } from 'lucide-react';
+import { ArrowLeft, Sparkles, Search, Calendar, Film, X, Play, ChevronDown, Check, Grid } from 'lucide-react';
 import { collectionsData, CollectionItem } from '@/lib/collectionsData';
+import InfiniteGrid from '@/components/ui/InfiniteGrid';
+import MasonryImageGrid from '@/components/ui/MasonryImageGrid';
+import FilmstripGallery, { type FilmstripImage } from '@/components/ui/filmstrip-gallery';
+
+function VideoCardWithHover({
+  item,
+  onClick,
+}: {
+  item: CollectionItem;
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  const hoverTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    hoverTimer.current = setTimeout(() => {
+      setIsHovered(true);
+    }, 300);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimer.current) {
+      clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+    setIsHovered(false);
+  };
+
+  const cardClass = item.isVertical ? 'video-card tall' : 'video-card wide';
+
+  return (
+    <div
+      className={`${cardClass} cursor-pointer group select-none relative`}
+      onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="relative w-full h-full overflow-hidden bg-zinc-950 rounded-2xl border border-zinc-800/80 transition-all duration-300 group-hover:border-red-500/60 group-hover:shadow-2xl group-hover:shadow-red-500/20">
+        <img
+          src={item.image}
+          alt={item.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10 pointer-events-none" />
+
+        {/* Live Hover Video Preview Iframe */}
+        {isHovered && item.youtubeId && (
+          <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none bg-black animate-fadeIn">
+            <iframe
+              src={`https://www.youtube.com/embed/${item.youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${item.youtubeId}&playsinline=1&modestbranding=1&rel=0&enablejsapi=1`}
+              title={item.title}
+              className="w-full h-full border-0 pointer-events-none scale-105"
+              allow="autoplay; encrypted-media"
+            />
+          </div>
+        )}
+
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 flex items-center gap-2 z-30 pointer-events-none">
+          <span className="rounded-full bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-red-400 border border-red-500/30 uppercase tracking-wider">
+            {item.tag}
+          </span>
+          {isHovered && (
+            <span className="rounded-full bg-red-500 text-white px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-widest animate-pulse flex items-center gap-1 shadow-lg shadow-red-500/50">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+              PREVIEW
+            </span>
+          )}
+        </div>
+
+        {item.duration && (
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-black/80 backdrop-blur-md px-2.5 py-1 text-xs font-semibold text-zinc-200 border border-white/10 z-30 pointer-events-none">
+            <Film className="w-3 h-3 text-red-500" />
+            <span>{item.duration}</span>
+          </div>
+        )}
+
+        {/* Prominent Red Play Button Overlay */}
+        <div className={`absolute inset-0 flex items-center justify-center z-30 pointer-events-none transition-opacity duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-red-500/90 text-white flex items-center justify-center shadow-[0_0_30px_rgba(255,59,48,0.6)] group-hover:scale-110 group-hover:bg-red-600 transition-all duration-300">
+            <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-white translate-x-0.5" />
+          </div>
+        </div>
+
+        {/* Bottom Info Overlay */}
+        <div className="absolute bottom-3 left-3 right-3 z-30 pointer-events-none">
+          <h4 className="font-heading text-sm sm:text-base font-bold text-white line-clamp-1 group-hover:text-red-400 transition-colors">
+            {item.title}
+          </h4>
+          <p className="text-xs text-zinc-400 line-clamp-1 mt-0.5 font-normal">
+            {item.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CollectionCategoryPage({
   params,
@@ -13,6 +110,9 @@ export default function CollectionCategoryPage({
   const { id } = React.use(params);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
+  const [imageViewMode, setImageViewMode] = useState<'infinite' | 'masonry'>('masonry');
+  const [videoViewMode, setVideoViewMode] = useState<'grid' | 'filmstrip' | 'featured'>('grid');
+  const [featuredIndex, setFeaturedIndex] = useState<number>(0);
 
   // Filter States
   const [selectedYear, setSelectedYear] = useState('All Years');
@@ -72,6 +172,16 @@ export default function CollectionCategoryPage({
         return matchesSearch && matchesYear && matchesCategory;
       })
     : category.items;
+
+  const filmstripImages: FilmstripImage[] = category.items.map((item) => ({
+    src: item.image,
+    alt: item.title,
+    caption: `${item.title} — ${item.description}`,
+    youtubeId: item.youtubeId,
+    isVertical: item.isVertical,
+  }));
+
+  const featuredVideo = category.items[featuredIndex] ?? category.items[0];
 
   return (
     <div className="min-h-screen bg-[#0B0B0E] text-zinc-100 font-sans selection:bg-red-500 selection:text-white pb-24">
@@ -273,59 +383,207 @@ export default function CollectionCategoryPage({
           </div>
         )}
 
-        {/* Collection Items Grid */}
-        <div className={category.id === 'videos' ? 'video-grid' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'}>
-          {filteredItems.map((item) => {
-            if (category.id === 'videos' && item.youtubeId) {
-              const cardClass = item.isVertical ? 'video-card tall' : 'video-card wide';
+        {/* View Mode Toggle Bar (Only for Images) */}
+        {category.id === 'images' && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-zinc-800/80">
+            <div>
+              <h3 className="font-heading text-lg font-bold text-white">
+                {imageViewMode === 'masonry' ? 'Masonry Photo Gallery' : 'Interactive Infinite Canvas'}
+              </h3>
+              <p className="text-zinc-400 text-xs sm:text-sm mt-0.5">
+                {imageViewMode === 'masonry'
+                  ? 'Click any photo to open the smooth horizontal drag & wheel lightbox viewer.'
+                  : 'Move your pointer across the canvas to drift and magnify photos endlessly.'}
+              </p>
+            </div>
 
-              return (
-                <div
-                  key={item.id}
-                  className={`${cardClass} cursor-pointer group select-none`}
-                  onClick={() => setSelectedItem(item)}
-                >
-                  <div className="relative w-full h-full overflow-hidden bg-zinc-950">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            <div className="flex items-center gap-1.5 bg-zinc-900/90 p-1.5 rounded-2xl border border-zinc-800 shrink-0">
+              <button
+                type="button"
+                onClick={() => setImageViewMode('masonry')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  imageViewMode === 'masonry'
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/25'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <Grid className="w-4 h-4" />
+                <span>Masonry Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageViewMode('infinite')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  imageViewMode === 'infinite'
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/25'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Infinite Canvas</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* View Mode Toggle Bar (Only for Videos) */}
+        {category.id === 'videos' && (
+          <div className="flex items-center justify-end mb-8 pb-4 border-b border-zinc-800/80">
+            <div className="flex items-center gap-1.5 bg-zinc-900/90 p-1.5 rounded-2xl border border-zinc-800 shrink-0">
+              <button
+                type="button"
+                onClick={() => setVideoViewMode('grid')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                  videoViewMode === 'grid'
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/25'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <Grid className="w-4 h-4" />
+                <span>Hover Grid</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setVideoViewMode('featured')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                  videoViewMode === 'featured'
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/25'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                }`}
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Featured Player</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Collection Items View Render */}
+        {category.id === 'images' ? (
+          imageViewMode === 'infinite' ? (
+            <div className="relative w-full h-[620px] rounded-3xl border border-zinc-800 bg-[#101015] overflow-hidden shadow-2xl my-4">
+              <InfiniteGrid
+                items={category.items.map((item) => ({ image: item.image }))}
+                itemSize={240}
+                gap={30}
+                maxSpeed={280}
+                damping={0.65}
+                magnify={0.45}
+                radius={240}
+                fitMode="square"
+              />
+              {/* Subtle Overlay Hint */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-5 py-2 rounded-full border border-white/10 text-xs font-medium text-zinc-300 pointer-events-none z-10 flex items-center gap-2 shadow-xl">
+                <span>✨ Move mouse to drift & magnify infinite photo grid</span>
+              </div>
+            </div>
+          ) : (
+            <MasonryImageGrid
+              images={category.items.map((item) => ({
+                src: item.image,
+                alt: item.title,
+                title: item.title,
+              }))}
+              columns={3}
+              gap={20}
+              borderRadius={20}
+              enableLightbox={true}
+              enableImageHover={true}
+              enableInfiniteScroll={true}
+              loadMoreCount={12}
+            />
+          )
+        ) : category.id === 'videos' ? (
+          videoViewMode === 'featured' ? (
+            <div className="flex flex-col gap-8 my-4">
+              {/* Main Featured Video Player */}
+              <div className="rounded-3xl border border-zinc-800 bg-[#121216] p-4 sm:p-6 shadow-2xl">
+                {featuredVideo.youtubeId && (
+                  <div className={`w-full rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shadow-2xl ${featuredVideo.isVertical ? 'aspect-[9/16] max-w-sm mx-auto h-[600px]' : 'aspect-[16/9]'}`}>
+                    <iframe
+                      src={`https://www.youtube.com/embed/${featuredVideo.youtubeId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`}
+                      title={featuredVideo.title}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                    {/* Top Badges */}
-                    <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
-                      <span className="rounded-full bg-black/80 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-red-400 border border-red-500/30 uppercase tracking-wider">
-                        {item.tag}
+                  </div>
+                )}
+                <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider">
+                        {featuredVideo.tag}
                       </span>
+                      {featuredVideo.duration && (
+                        <span className="text-xs text-zinc-400 font-mono">
+                          ⏱ {featuredVideo.duration}
+                        </span>
+                      )}
                     </div>
-
-                    {item.duration && (
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-black/80 backdrop-blur-md px-2.5 py-1 text-xs font-semibold text-zinc-200 border border-white/10 z-10">
-                        <Film className="w-3 h-3 text-red-500" />
-                        <span>{item.duration}</span>
-                      </div>
-                    )}
-
-                    {/* Prominent Red Play Button Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-red-500/90 text-white flex items-center justify-center shadow-[0_0_30px_rgba(255,59,48,0.6)] group-hover:scale-110 group-hover:bg-red-600 transition-all duration-300">
-                        <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-white translate-x-0.5" />
-                      </div>
-                    </div>
-
-                    {/* Bottom Info Overlay */}
-                    <div className="absolute bottom-3 left-3 right-3 z-10">
-                      <h4 className="font-heading text-sm sm:text-base font-bold text-white line-clamp-1">
-                        {item.title}
-                      </h4>
-                    </div>
+                    <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-white">
+                      {featuredVideo.title}
+                    </h2>
+                    <p className="text-zinc-300 text-sm sm:text-base mt-2 leading-relaxed max-w-3xl">
+                      {featuredVideo.description}
+                    </p>
                   </div>
                 </div>
-              );
-            }
+              </div>
 
-            return (
+              {/* Video Selector Row */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">
+                  Select Video Reel to Preview
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {category.items.map((item, idx) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setFeaturedIndex(idx)}
+                      className={`group relative rounded-xl overflow-hidden border text-left transition-all duration-300 ${
+                        featuredIndex === idx
+                          ? 'border-red-500 ring-2 ring-red-500/50 scale-105 shadow-xl'
+                          : 'border-zinc-800 opacity-70 hover:opacity-100 hover:border-zinc-600'
+                      }`}
+                    >
+                      <div className="aspect-[16/10] w-full relative overflow-hidden bg-zinc-950">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        {featuredIndex === idx && (
+                          <div className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-lg">
+                            <Play className="w-3 h-3 fill-white translate-x-0.5" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2 bg-zinc-900">
+                        <p className="text-xs font-bold text-white line-clamp-1">
+                          {item.title}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="video-grid">
+              {filteredItems.map((item) => (
+                <VideoCardWithHover
+                  key={item.id}
+                  item={item}
+                  onClick={() => setSelectedItem(item)}
+                />
+              ))}
+            </div>
+          )
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredItems.map((item) => (
               <div
                 key={item.id}
                 onClick={() => setSelectedItem(item)}
@@ -379,9 +637,9 @@ export default function CollectionCategoryPage({
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
         {filteredItems.length === 0 && (
           <div className="text-center py-20 bg-zinc-900/30 rounded-3xl border border-zinc-800">
@@ -424,7 +682,7 @@ export default function CollectionCategoryPage({
               {selectedItem.youtubeId ? (
                 <div className={`w-full rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 ${selectedItem.isVertical ? 'aspect-[9/16] max-w-sm mx-auto' : 'aspect-[16/9]'}`}>
                   <iframe
-                    src={`https://www.youtube.com/embed/${selectedItem.youtubeId}?playsinline=1&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3`}
+                    src={`https://www.youtube.com/embed/${selectedItem.youtubeId}?autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1`}
                     title={selectedItem.title}
                     className="w-full h-full border-0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

@@ -6,12 +6,23 @@ import Navbar from '../components/ui/Navbar';
 import Footer1 from '../components/ui/footer-section-1';
 import NinjaRunner from '../components/ui/NinjaRunner';
 import ContactDrawer from '../components/ui/ContactDrawer';
+import MouseTrail from '../components/ui/MouseTrail';
 
 export default function NotFound() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#0A0A0D', color: '#FFFFFF' }}>
+      <MouseTrail 
+        variant="line"
+        fillType="gradient"
+        trailColor="#FF3B30"
+        trailColorEnd="#FF9500"
+        trailLength={24}
+        lineWidth={4}
+        fadeOut={true}
+        smoothing={0.25}
+      />
       <Navbar onOpenDrawer={() => setIsDrawerOpen(true)} />
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 24px 60px 24px', maxWidth: '900px', margin: '0 auto', width: '100%', textAlign: 'center' }}>

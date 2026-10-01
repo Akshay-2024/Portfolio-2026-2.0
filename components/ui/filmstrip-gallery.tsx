@@ -437,6 +437,15 @@ export function FilmstripGallery({
                       transition,
                     }}
                   />
+                  {image.youtubeId ? (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                      <div className="h-8 w-8 rounded-full bg-red-500/90 text-white flex items-center justify-center shadow-lg shadow-red-500/50 backdrop-blur-sm border border-white/20">
+                        <svg className="w-4 h-4 fill-white translate-x-0.5" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                    </div>
+                  ) : null}
                   {inGate ? (
                     <span
                       aria-hidden="true"

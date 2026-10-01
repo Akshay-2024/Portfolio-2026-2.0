@@ -14,6 +14,7 @@ import ProjectsSection from '../components/sections/ProjectsSection';
 import BrandSliderSection from '../components/sections/BrandSliderSection';
 import ContactDrawer from '../components/ui/ContactDrawer';
 import Footer1 from '../components/ui/footer-section-1';
+import MouseTrail from '../components/ui/MouseTrail';
 
 export default function Home() {
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
@@ -153,6 +154,18 @@ export default function Home() {
 
   return (
     <>
+      {/* Interactive Framer Mouse Trail */}
+      <MouseTrail 
+        variant="line"
+        fillType="gradient"
+        trailColor="#FF3B30"
+        trailColorEnd="#FF9500"
+        trailLength={24}
+        lineWidth={4}
+        fadeOut={true}
+        smoothing={0.25}
+      />
+
       {/* Custom Cursor Follower */}
       <div 
         className={`custom-cursor ${isCursorActive ? 'active' : ''}`}
