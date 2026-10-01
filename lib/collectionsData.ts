@@ -5,15 +5,16 @@ import { videosData } from './videosData';
 export interface CollectionItem {
   id: number;
   title: string;
-  tag: string;
+  tag?: string;
   category?: string;
-  description: string;
+  description?: string;
   image: string;
   date?: string;
   link?: string;
   duration?: string;
   youtubeId?: string;
   isVertical?: boolean;
+  loading?: 'eager' | 'lazy';
 }
 
 export interface CollectionCategory {
@@ -43,6 +44,7 @@ export const collectionsData: CollectionCategory[] = [
     subtitle: `${imagesData.length} captures`,
     itemCount: `${imagesData.length} Captures`,
     description: 'Curated gallery of editorial fashion portraits, architecture fine-art captures, and visual documentary series.',
+    
     items: imagesData,
   },
   {

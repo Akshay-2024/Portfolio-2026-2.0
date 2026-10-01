@@ -3,65 +3,170 @@ import { CollectionItem } from './collectionsData';
 /**
  * ==============================================================================
  * IMAGES & PHOTOGRAPHY DATASET
- * Add or edit your photos and gallery images here.
  * Format:
  * {
  *   id: number,
  *   title: 'Photo Name',
- *   tag: 'TAG / TYPE',
- *   description: 'Details about the capture',
  *   image: 'Image URL or path',
- *   date: 'Year'
  * }
  * ==============================================================================
  */
 export const imagesData: CollectionItem[] = [
-  {
+ {
     id: 1,
-    title: 'Black Camera Lens & Neon Blue Smoke',
-    tag: 'FEATURED SHOT',
-    description: 'High-focus camera lens photography set against atmospheric blue light and moody background tones.',
-    image: 'https://img.freepik.com/premium-photo/black-camera-lens-focus-with-blurry-blue-smoke-background_14117-1020898.jpg',
-    date: '2024',
+    title: 'Mountain Terraces',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p26.jpg',
+    loading: "eager",
   },
   {
     id: 2,
-    title: 'Paris Fashion Week Monochrome Series',
-    tag: 'EDITORIAL PHOTOGRAPHY',
-    description: 'High-contrast studio and street portraits captured during Paris Fashion Week across Le Marais.',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
-    date: '2024',
+    title: 'Traditional Craft',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p25.jpg',
+    loading: "eager",
+    
   },
   {
     id: 3,
-    title: 'Le Marais Architecture & Geometry',
-    tag: 'FINE ART PHOTOGRAPHY',
-    description: 'Minimalist study of modern concrete and brutalist architectural structures across Paris & Berlin.',
-    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1000&q=80',
-    date: '2024',
+    title: 'Lakeside Stillness',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p24.jpg',
+    loading: "eager",
   },
   {
     id: 4,
-    title: 'Cinematic Studio Portraiture',
-    tag: 'PORTRAIT SERIES',
-    description: 'Dramatic low-key studio lighting setup for indie musicians and European visual artists.',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80',
-    date: '2023',
+    title: 'Coastal Reflections',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p23.jpg',
+    loading: "eager",
   },
   {
     id: 5,
-    title: 'Hult Prize Grand Finale Visual Story',
-    tag: 'EVENT DOCUMENTARY',
-    description: 'Documenting keynote presentations, stage lights, pitch sessions, and winner celebrations.',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1000&q=80',
-    date: '2024',
+    title: 'Hillside Stories',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p22.jpg',
+    loading: "eager",
   },
   {
     id: 6,
-    title: 'Urban Moods & Sunset Silhouette',
-    tag: 'STREET PHOTOGRAPHY',
-    description: 'Golden hour silhouette series highlighting texture and movement in city environments.',
-    image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1000&q=80',
-    date: '2023',
+    title: 'Sacred Motion',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p0.jpg',
+    loading: "eager",
+  },
+  {
+    id: 7,
+    title: 'Festival Lights',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p1.jpg',
+    loading: "eager",
+  },
+  {
+    id: 8,
+    title: 'Silent Branches',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p2.jpg',
+    loading: "eager",
+  },
+  {
+    id: 9,
+    title: 'Wild Bloom',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p3.jpg',
+    loading: "eager",
+  },
+  {
+    id: 10,
+    title: 'Ant Trail',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p4.jpg',
+    loading: "eager",
+  },
+  {
+    id: 11,
+    title: 'White Bloom',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p5.jpg',
+    loading: "eager",
+  },
+  {
+    id: 12,
+    title: 'Tiny Journey',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p6.jpg',
+    loading: "eager",
+  },
+  {
+    id: 13,
+    title: 'Forest Bloom',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p7.jpg',
+    loading: "eager",
+  },
+  {
+    id: 14,
+    title: 'Ferris Nights',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p8.jpg',
+    loading: "eager",
+  },
+  {
+    id: 15,
+    title: 'Miniature Drive',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p9.jpg',
+    loading: "eager",
+  },
+  {
+    id: 16,
+    title: 'Behind the Bars',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p10.jpg',
+    loading: "eager",
+  },
+  {
+    id: 17,
+    title: 'Carnival Nights',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p11.jpg',
+    loading: "eager",
+  },
+  {
+    id: 18,
+    title: 'Into the Wild',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p12.jpg',
+    loading: "eager",
+  },
+  {
+    id: 19,
+    title: 'Golden Wings',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p13.jpg',
+    loading: "eager",
+  },
+  {
+    id: 20,
+    title: 'Misty Highlands',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p14.jpg',
+    loading: "eager",
+  },
+  {
+    id: 21,
+    title: 'Heritage Streets',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p15.jpg',
+    loading: "eager",
+  },
+  {
+    id: 22,
+    title: 'Forest Watcher',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p16.jpg',
+    loading: "eager",
+  },
+  {
+    id: 23,
+    title: 'Green Escape',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p17.jpg',
+    loading: "eager",
+  },
+  {
+    id: 24,
+    title: 'Summer Grove',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p18.jpg',
+    loading: "eager",
+  },
+  {
+    id: 25,
+    title: 'Backwater Calm',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p19.jpg',
+    loading: "eager",
+  },
+  {
+    id: 26,
+    title: 'Mountain Light',
+    image: 'https://res.cloudinary.com/ak6fzdkq/image/upload/v1790093865/p21.jpg',
+    loading: "eager",
   },
 ];
