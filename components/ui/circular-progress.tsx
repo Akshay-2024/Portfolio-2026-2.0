@@ -191,7 +191,7 @@ function CircularProgress(props: CircularProgressProps) {
     ],
   );
 
-  const RootPrimitive = asChild ? SlotPrimitive.Slot : "div";
+  const RootPrimitive = asChild ? SlotPrimitive : "div";
 
   return (
     <CircularProgressContext.Provider value={contextValue}>
@@ -317,7 +317,7 @@ function CircularProgressValueText(props: CircularProgressValueTextProps) {
 
   const context = useCircularProgressContext(VALUE_TEXT_NAME);
 
-  const ValueTextPrimitive = asChild ? SlotPrimitive.Slot : "span";
+  const ValueTextPrimitive = asChild ? SlotPrimitive : "span";
 
   return (
     <ValueTextPrimitive
