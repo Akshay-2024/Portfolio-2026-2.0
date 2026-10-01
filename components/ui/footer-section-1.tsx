@@ -51,6 +51,7 @@ export default function Footer1() {
     { name: "Images", href: "#images" },
     { name: "Videos", href: "#videos" },
     { name: "Projects", href: "#projects" },
+    { name: "Entertainment", href: "/hidden-talent" },
   ];
 
   return (

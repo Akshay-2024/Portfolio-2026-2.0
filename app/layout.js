@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Akshay S — Webdesigner & Photographer',
-  description: 'Portfolio of Akshay S - Freelance Webdesigner & Photographer based in Paris, France. UI/UX Design & Fine Art Photography.',
+  title: 'Akshay S — Webdeveloper & Photographer',
+  description: 'Portfolio of Akshay S - Freelance Webdeveloper & Photographer based in India, France.',
 };
 
 export default function RootLayout({ children }) {
