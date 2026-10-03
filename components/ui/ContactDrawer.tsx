@@ -109,7 +109,7 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({ isOpen, onClose })
               id="name" 
               value={formData.name} 
               onChange={handleChange} 
-              placeholder="John Doe" 
+              placeholder="Elon Musk" 
               required 
               disabled={status === 'submitting'}
             />
@@ -122,7 +122,7 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({ isOpen, onClose })
               id="email" 
               value={formData.email} 
               onChange={handleChange} 
-              placeholder="john@example.com" 
+              placeholder="elon@musk.com" 
               required 
               disabled={status === 'submitting'}
             />

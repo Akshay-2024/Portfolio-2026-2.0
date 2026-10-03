@@ -43,7 +43,7 @@ export const VideosSection: React.FC = () => {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-widest mb-3">
               <Film className="w-4 h-4" />
-              <span>08 / CINEMATIC PRODUCTIONS</span>
+              <span>07 / CINEMATIC PRODUCTIONS</span>
             </div>
             <h2 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
               Videos & Film Reels

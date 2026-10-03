@@ -21,26 +21,29 @@ export const ArcGalleryHero: React.FC<ArcGalleryHeroProps> = ({
   endAngle = 160,
   radiusLg = 480,
   radiusMd = 360,
-  radiusSm = 240,
+  radiusSm = 150,
   cardSizeLg = 135,
   cardSizeMd = 110,
-  cardSizeSm = 85,
+  cardSizeSm = 65,
   className = '',
 }) => {
   const [dimensions, setDimensions] = useState({
     radius: radiusLg,
     cardSize: cardSizeLg,
+    isMobile: false,
   });
 
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setDimensions({ radius: radiusSm, cardSize: cardSizeSm });
+        const dynamicRadius = Math.min(radiusSm, Math.max(110, (width - 80) / 2));
+        const dynamicCardSize = Math.min(cardSizeSm, Math.max(50, width * 0.16));
+        setDimensions({ radius: dynamicRadius, cardSize: dynamicCardSize, isMobile: true });
       } else if (width < 1024) {
-        setDimensions({ radius: radiusMd, cardSize: cardSizeMd });
+        setDimensions({ radius: radiusMd, cardSize: cardSizeMd, isMobile: false });
       } else {
-        setDimensions({ radius: radiusLg, cardSize: cardSizeLg });
+        setDimensions({ radius: radiusLg, cardSize: cardSizeLg, isMobile: false });
       }
     };
 
@@ -49,11 +52,16 @@ export const ArcGalleryHero: React.FC<ArcGalleryHeroProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [radiusLg, radiusMd, radiusSm, cardSizeLg, cardSizeMd, cardSizeSm]);
 
-  const count = Math.max(images.length, 2);
+  // On mobile screens, select up to 11 evenly spaced images so cards don't overlap into a dense block
+  const visibleImages = dimensions.isMobile && images.length > 11
+    ? images.filter((_, idx) => idx % Math.ceil(images.length / 11) === 0).slice(0, 11)
+    : images;
+
+  const count = Math.max(visibleImages.length, 2);
   const step = (endAngle - startAngle) / (count - 1);
 
   return (
-    <div className={`relative overflow-visible bg-white text-zinc-900 pt-8 pb-4 flex flex-col ${className}`} suppressHydrationWarning>
+    <div className={`relative overflow-visible bg-white text-zinc-900 pt-4 sm:pt-8 pb-4 flex flex-col ${className}`} suppressHydrationWarning>
       {/* Background Arc Ring Container — Ample height prevents top cropping */}
       <div
         className="relative mx-auto w-full overflow-visible"
@@ -63,7 +71,7 @@ export const ArcGalleryHero: React.FC<ArcGalleryHeroProps> = ({
       >
         {/* Center pivot for transform calculations */}
         <div className="absolute left-1/2 bottom-0 -translate-x-1/2">
-          {images.map((src, i) => {
+          {visibleImages.map((src, i) => {
             const angle = startAngle + step * i;
             const angleRad = (angle * Math.PI) / 180;
             
@@ -89,7 +97,7 @@ export const ArcGalleryHero: React.FC<ArcGalleryHeroProps> = ({
                 suppressHydrationWarning
               >
                 <div 
-                  className="rounded-2xl shadow-2xl overflow-hidden ring-1 ring-zinc-300 bg-white transition-all duration-500 hover:scale-115 hover:ring-red-500 hover:shadow-2xl hover:shadow-red-500/25 hover:z-50 w-full h-full cursor-pointer animate-float-gentle group"
+                  className="rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl overflow-hidden ring-1 ring-zinc-300 bg-white transition-all duration-500 hover:scale-115 hover:ring-red-500 hover:shadow-2xl hover:shadow-red-500/25 hover:z-50 w-full h-full cursor-pointer animate-float-gentle group"
                   style={{ 
                     transform: `rotate(${rotationDeg}deg)`,
                     animationDelay: waveDelay,

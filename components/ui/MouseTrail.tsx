@@ -100,6 +100,9 @@ export default function MouseTrail(props: MouseTrailProps) {
   // Pointer Move Tracking
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
+      // Ignore touch events to avoid drawing accidental lines while touch scrolling on mobile
+      if (e.pointerType === 'touch') return;
+
       const x = e.clientX;
       const y = e.clientY;
       const p = propsRef.current;

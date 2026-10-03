@@ -22,18 +22,22 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
           </div>
 
           <h2 className="about-headline">
-            Creating clean websites & striking visuals.
+            Creating clean digital experiences & striking visuals.
           </h2>
 
           <div className="about-description">
             <p>
-              Hi, I'm <strong>Akshay S</strong> — a freelance Web Developer, Photographer & Videographer based in Paris, France.
+              Hi, I’m Akshay S — a Computer Engineering student, Front-End Developer, Photographer & Videographer focused on building modern digital experiences and creating compelling visual content.
             </p>
             <p>
-              With over 8 years of international experience, I build fast, modern websites and produce high-quality photography & cinematic videos for global brands, luxury labels, and creative agencies.
+              I work across web development, UI/UX design, photography, videography, and digital design, combining technical skills with a strong eye for visual detail.
             </p>
             <p>
-              My work combines clean code architecture with strong visual direction. Whether crafting interactive Next.js applications, directing fashion photo shoots, or editing commercial video campaigns, I deliver end-to-end creative solutions tailored to elevate brand identities.
+             My approach combines clean code, thoughtful design, and visual storytelling — whether I’m developing a website, designing a digital experience, or creating content for a brand.
+            </p>
+            <p><b>
+              Technology meets creativity in everything I create.
+              </b>
             </p>
           </div>
 
@@ -64,7 +68,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
         {/* Right Column Target Box for Parallax Portrait Landing */}
         <div className="about-right-frame">
           <div className="parallax-target-card" ref={targetCardRef}>
-            <span className="target-badge block md:hidden">PARALLAX VISION</span>
+            
             <img 
               src="/person.png" 
               alt="Akshay S" 

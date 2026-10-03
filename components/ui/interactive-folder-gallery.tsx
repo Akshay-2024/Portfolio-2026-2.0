@@ -57,7 +57,8 @@ export function InteractiveFolderGallery({
           {/* Stacked Photos */}
           <div className="absolute bottom-10 z-10 flex justify-center w-full">
             {photos.map((photo, i) => {
-              const offset = i - 2;
+              const centerIndex = (photos.length - 1) / 2;
+              const offset = i - centerIndex;
 
               const stackY = hoverFolder ? offset * -10 - 40 : offset * -5;
               const stackX = hoverFolder ? offset * 20 : offset * 3;

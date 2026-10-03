@@ -75,15 +75,15 @@ export default function Feature24MilestoneTimeline() {
         <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-16 sm:mb-20">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-500 font-bold text-xs uppercase tracking-widest mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>04 / ACADEMIC JOURNEY</span>
+            <span>03 / ACADEMIC JOURNEY</span>
           </div>
 
           <h2 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Education & Academic Milestones
+            Academic Milestones
           </h2>
 
           <p className="text-zinc-400 text-base sm:text-lg mt-3 leading-relaxed">
-            Formal qualifications, computer science engineering degrees, and specialized technical academic achievements.
+            Building a strong foundation in Computer Engineering, technology, and innovation.
           </p>
         </div>
 
@@ -123,7 +123,7 @@ export default function Feature24MilestoneTimeline() {
                   </div>
 
                   {/* Card Content Block */}
-                  <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-8">
+                  <div className="w-full md:w-1/2 pl-10 sm:pl-12 md:pl-0 md:px-8">
                     <motion.div
                       whileHover={{ y: -4 }}
                       transition={{ duration: 0.2 }}
@@ -150,11 +150,11 @@ export default function Feature24MilestoneTimeline() {
                       </div>
 
                       {/* Institution Title & Degree */}
-                      <h3 className="font-heading text-xl sm:text-2xl font-extrabold text-white group-hover:text-red-400 transition-colors leading-snug">
+                      <h3 className="font-heading text-lg sm:text-xl md:text-2xl font-extrabold text-white group-hover:text-red-400 transition-colors leading-snug break-words [overflow-wrap:anywhere]">
                         {mil.institution}
                       </h3>
 
-                      <p className="text-zinc-300 font-semibold text-sm sm:text-base mt-2">
+                      <p className="text-zinc-300 font-semibold text-sm sm:text-base mt-2 break-words">
                         {mil.degree}
                       </p>
 

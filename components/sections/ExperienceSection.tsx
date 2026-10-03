@@ -36,7 +36,7 @@ export const experienceData: ExperienceItem[] = [
     id: 2,
     roleTag: 'TECHNICAL LEAD',
     title: 'Technical Direction',
-    description: 'Managed technical infrastructure and development workflows for digital projects.',
+    description: 'At Legacy IEDC, I managed technical infrastructure and development workflows for digital projects.',
     image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80',
     icon: <Code className="w-5 h-5 text-red-500" />,
   },
@@ -66,7 +66,7 @@ export const ExperienceSection: React.FC = () => {
     <section className="experience-section" id="experience">
       <div className="experience-header">
         <div className="experience-badge">
-          <span>●</span> 05 / LEADERSHIP & ROLES
+          <span>●</span> 04 / LEADERSHIP & ROLES
         </div>
         <h2 className="experience-title">Professional Experience</h2>
         <p className="experience-subtitle">

@@ -100,13 +100,13 @@ export const ProjectsSection: React.FC = () => {
           <div className="max-w-2xl">
             {/* Header Badge */}
             <div className="flex items-center gap-3 mb-3 flex-wrap">
-              <div className="inline-flex items-center gap-2 text-[#DAA520] font-bold text-xs uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 text-[#FF3B30] font-bold text-xs uppercase tracking-widest">
                 <Layers className="w-4 h-4" />
-                <span>09 / FEATURED WORKS</span>
+                <span>08 / FEATURED WORKS</span>
               </div>
               
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-700 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-xs font-bold uppercase tracking-wider shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
                 <span>{topProjectsData.length} Selected Projects</span>
               </div>
             </div>
