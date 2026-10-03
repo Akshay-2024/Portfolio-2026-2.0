@@ -18,8 +18,15 @@ function PageTransitionLoaderContent() {
 
   const isFirstRender = React.useRef(true);
 
+  const safetyTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
   // Trigger smooth progress animation only on actual route navigation
   useEffect(() => {
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -54,13 +61,38 @@ function PageTransitionLoaderContent() {
   // Intercept local link clicks for instant visual feedback
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
+      if (e.defaultPrevented) return;
+
       const target = e.target as HTMLElement | null;
       const anchor = target?.closest('a');
-      if (anchor && anchor.href && anchor.href.startsWith(window.location.origin)) {
-        const url = new URL(anchor.href);
-        if (url.pathname !== window.location.pathname) {
-          setLoading(true);
-          setProgress(20);
+      if (!anchor || !anchor.href) return;
+
+      // Skip download links or links opening in new tab/window
+      if (anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) {
+        return;
+      }
+
+      if (anchor.href.startsWith(window.location.origin)) {
+        try {
+          const url = new URL(anchor.href);
+
+          // Skip static document and media assets
+          const staticFilePattern = /\.(pdf|zip|tar|gz|rar|7z|doc|docx|xls|xlsx|ppt|pptx|png|jpg|jpeg|svg|webp|gif|mp3|mp4|wav|avi|mov)$/i;
+          if (staticFilePattern.test(url.pathname)) {
+            return;
+          }
+
+          if (url.pathname !== window.location.pathname) {
+            setLoading(true);
+            setProgress(20);
+
+            if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+            safetyTimeoutRef.current = setTimeout(() => {
+              setLoading(false);
+            }, 3000);
+          }
+        } catch {
+          // ignore
         }
       }
     };

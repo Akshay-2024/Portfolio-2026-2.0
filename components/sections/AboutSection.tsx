@@ -50,12 +50,11 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
             </button>
 
             <a 
-              href="#cv" 
+              href="/Doc/Akshay S resume.pdf" 
+              
+              download="Akshay S resume.pdf"
               className="cv-link" 
-              onClick={(e) => { 
-                e.preventDefault(); 
-                alert('Downloading Akshay S — Resume/CV...'); 
-              }}
+              
             >
               <span>Download Resume</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
