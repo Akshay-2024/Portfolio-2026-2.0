@@ -24,7 +24,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
 
         {/* Headline Typography */}
-        <div className="hero-typography">
+        <h1 className="hero-typography">
           <div className="typo-line line-designer">
             <span>Web</span>
             <a 
@@ -44,7 +44,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="typo-line line-photographer">
             <span className="typo-outline">& Photographer</span>
           </div>
-        </div>
+        </h1>
 
         {/* Person Portrait Layer */}
         <div className="person-container">
