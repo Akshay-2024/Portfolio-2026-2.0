@@ -3,6 +3,10 @@ import PageTransitionLoader from '../components/ui/PageTransitionLoader';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akshays.me';
 
+export const viewport = {
+  themeColor: '#0A0A0D',
+};
+
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -50,7 +54,7 @@ export const metadata = {
     siteName: 'Akshay S Portfolio',
     images: [
       {
-        url: '/person.png',
+        url: '/person1.png',
         width: 1200,
         height: 630,
         alt: 'Akshay S — Full-Stack Web Developer & Photographer',
@@ -62,7 +66,7 @@ export const metadata = {
     title: 'Akshay S — Full-Stack Web Developer & Photographer',
     description:
       'Official portfolio of Akshay S — Full-Stack Web Developer & Photographer specializing in Next.js, React, AI applications, luxury UI design, and editorial photography.',
-    images: ['/person.png'],
+    images: ['/person1.png'],
   },
   icons: {
     icon: [
@@ -97,8 +101,8 @@ const jsonLdSchema = {
       url: siteUrl,
       sameAs: [
         'https://github.com/Akshay-2024',
-        'https://linkedin.com',
-        'https://instagram.com',
+        'https://linkedin.com/in/akshay-s-992aa431b',
+        'https://instagram.com/ak.s.ay',
       ],
       knowsAbout: [
         'Web Development',
@@ -109,6 +113,7 @@ const jsonLdSchema = {
         'Python',
         'UI/UX Design',
         'Photography',
+        'videography',
       ],
     },
     {

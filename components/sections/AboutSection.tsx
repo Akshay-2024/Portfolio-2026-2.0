@@ -69,7 +69,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
           <div className="parallax-target-card" ref={targetCardRef}>
             
             <img 
-              src="/person.png" 
+              src="/person1.png" 
               alt="Akshay S" 
               className="w-full h-full object-contain pointer-events-none block md:hidden max-h-[500px] mt-2 scale-105" 
             />

@@ -155,16 +155,16 @@ export default function Home() {
   return (
     <>
       {/* Interactive Framer Mouse Trail */}
-      <MouseTrail 
-        variant="line"
-        fillType="gradient"
-        trailColor="#FF3B30"
-        trailColorEnd="#FF9500"
-        trailLength={24}
-        lineWidth={4}
-        fadeOut={true}
-        smoothing={0.25}
-      />
+     <MouseTrail
+  variant="line"
+  fillType="gradient"
+  trailColor="#ff9130"
+  trailColorEnd="#f1290e"
+  trailLength={32}
+  lineWidth={3}
+  fadeOut={true}
+  smoothing={0.12}
+/>
 
       {/* Custom Cursor Follower */}
       <div 

@@ -50,7 +50,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="person-container">
           <img 
             ref={heroPersonRef}
-            src="/person.png" 
+            src="/person1.png" 
             alt="Akshay S — Webdesigner & Photographer" 
             className="person-image"
             style={heroImageParallaxStyle}
