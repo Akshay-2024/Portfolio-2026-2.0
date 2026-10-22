@@ -57,7 +57,7 @@ export function InteractiveFolderGallery({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Touch handlers for mobile swipe navigation
+  // Touch handlers for mobile swipe navigation (low threshold for instant finger response)
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -71,12 +71,12 @@ export function InteractiveFolderGallery({
     const deltaX = e.changedTouches[0].clientX - touchStartX.current;
     const deltaY = e.changedTouches[0].clientY - touchStartY.current;
 
-    // Vertical swipe down (> 60px) closes the folder
-    if (deltaY > 60 && Math.abs(deltaY) > Math.abs(deltaX)) {
+    // Vertical swipe down (> 50px) closes the folder
+    if (deltaY > 50 && Math.abs(deltaY) > Math.abs(deltaX)) {
       setIsFolderOpen(false);
       setHoverFolder(false);
-    } else if (Math.abs(deltaX) > 40) {
-      // Horizontal swipe to cycle certificates on mobile
+    } else if (Math.abs(deltaX) > 30) {
+      // Horizontal swipe to cycle certificates on mobile (30px threshold for snappy feel)
       if (deltaX < 0) {
         // Swipe left -> Next
         setActiveMobileIndex((prev) => Math.min(photos.length - 1, prev + 1));
@@ -93,36 +93,36 @@ export function InteractiveFolderGallery({
 
   return (
     <div className={`w-full py-4 sm:py-8 relative ${className || ""}`}>
-      {/* Interactive Folder Gallery Canvas */}
+      {/* Interactive Folder Gallery Canvas - 3D perspective enabled only on desktop to eliminate mobile lag */}
       <div
-        className={`relative w-full flex flex-col items-center justify-center transition-all duration-300 ${
+        className={`relative w-full flex flex-col items-center justify-center ${
           isFolderOpen
-            ? "min-h-[460px] sm:min-h-[500px]"
-            : "min-h-[300px] sm:min-h-[380px]"
+            ? "min-h-[440px] sm:min-h-[500px]"
+            : "min-h-[290px] sm:min-h-[380px]"
         }`}
-        style={{ perspective: "1200px" }}
+        style={isMobile ? undefined : { perspective: "1200px" }}
       >
         <div
-          className={`relative w-full max-w-[420px] flex justify-center pointer-events-none z-0 transition-all duration-300 ${
+          className={`relative w-full max-w-[420px] flex justify-center pointer-events-none z-0 ${
             isFolderOpen
-              ? "h-[420px] sm:h-[460px]"
-              : "h-[280px] sm:h-[340px]"
+              ? "h-[400px] sm:h-[460px]"
+              : "h-[270px] sm:h-[340px]"
           }`}
           onTouchStart={isFolderOpen && isMobile ? handleTouchStart : undefined}
           onTouchEnd={isFolderOpen && isMobile ? handleTouchEnd : undefined}
         >
           {/* Folder Backing */}
           <motion.div
-            className="absolute bottom-6 w-[270px] sm:w-80 h-44 sm:h-56 drop-shadow-2xl"
+            className="absolute bottom-6 w-[270px] sm:w-80 h-44 sm:h-56 drop-shadow-xl pointer-events-none"
             animate={{
               opacity: isFolderOpen ? 0 : 1,
-              scale: isFolderOpen ? 0.9 : 1,
+              scale: isFolderOpen ? 0.92 : 1,
             }}
-            style={{ pointerEvents: "none" }}
+            transition={{ duration: 0.2 }}
           >
             <div className="absolute top-0 left-0 w-28 sm:w-32 h-8 sm:h-10 bg-gradient-to-t from-[#1e1e1e] to-[#2a2a2a] rounded-t-xl border-t border-l border-r border-white/10" />
-            <div className="absolute top-6 sm:top-8 left-0 right-0 bottom-0 bg-gradient-to-b from-[#1e1e1e] to-[#0a0a0a] rounded-b-xl rounded-tr-xl border border-white/10 shadow-2xl" />
-            <div className="absolute top-8 sm:top-10 left-2 right-2 bottom-2 bg-black rounded-lg pointer-events-none opacity-80" />
+            <div className="absolute top-6 sm:top-8 left-0 right-0 bottom-0 bg-gradient-to-b from-[#1e1e1e] to-[#0a0a0a] rounded-b-xl rounded-tr-xl border border-white/10 shadow-xl" />
+            <div className="absolute top-8 sm:top-10 left-2 right-2 bottom-2 bg-black rounded-lg opacity-80" />
           </motion.div>
 
           {/* Stacked Photos */}
@@ -132,51 +132,53 @@ export function InteractiveFolderGallery({
               const offset = i - centerIndex;
 
               // Closed stack layout
-              const stackY = hoverFolder ? offset * -8 - 30 : offset * -4;
-              const stackX = hoverFolder ? offset * 14 : offset * 2;
-              const stackRotate = hoverFolder ? offset * 6 : offset * 2;
+              const stackY = hoverFolder ? offset * -8 - 25 : offset * -4;
+              const stackX = hoverFolder ? offset * 12 : offset * 2;
+              const stackRotate = hoverFolder ? offset * 5 : offset * 2;
               const stackScale = 1 - Math.abs(offset) * 0.03;
 
-              // Open layout - Mobile focused card deck vs Desktop fanned array
+              // Open layout - Hardware-accelerated 2D deck on mobile vs 3D fanned array on desktop
               let openX = 0;
-              let openY = -90;
+              let openY = -85;
               let openRotate = 0;
               let openScale = 1;
               let openZIndex = 50;
               let openOpacity = 1;
+              let isHiddenOnMobile = false;
 
               if (isMobile) {
                 const diff = i - activeMobileIndex;
                 if (diff === 0) {
                   // Active card front & center
                   openX = 0;
-                  openY = -80;
+                  openY = -75;
                   openRotate = 0;
                   openScale = 1;
                   openZIndex = 60;
                   openOpacity = 1;
                 } else if (diff === 1) {
                   // Next card peeking right
-                  openX = 70;
-                  openY = -75;
-                  openRotate = 4;
+                  openX = 65;
+                  openY = -70;
+                  openRotate = 0;
                   openScale = 0.88;
                   openZIndex = 40;
-                  openOpacity = 0.55;
+                  openOpacity = 0.5;
                 } else if (diff === -1) {
                   // Previous card peeking left
-                  openX = -70;
-                  openY = -75;
-                  openRotate = -4;
+                  openX = -65;
+                  openY = -70;
+                  openRotate = 0;
                   openScale = 0.88;
                   openZIndex = 40;
-                  openOpacity = 0.55;
+                  openOpacity = 0.5;
                 } else {
-                  // Remaining cards tucked behind
-                  openX = diff * 75;
-                  openY = -70;
-                  openRotate = diff * 5;
-                  openScale = 0.76;
+                  // Hide remaining cards on mobile to reduce GPU layers from 6 down to 3
+                  isHiddenOnMobile = true;
+                  openX = diff * 70;
+                  openY = -65;
+                  openRotate = 0;
+                  openScale = 0.75;
                   openZIndex = 20;
                   openOpacity = 0;
                 }
@@ -206,25 +208,31 @@ export function InteractiveFolderGallery({
                   }}
                   onClick={() => {
                     if (isFolderOpen && isMobile && i !== activeMobileIndex) {
-                      // Tap neighboring card to bring it front & center
                       setActiveMobileIndex(i);
                     }
                   }}
-                  className={`absolute bottom-0 w-[270px] h-[190px] sm:w-72 sm:h-52 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border transition-colors bg-zinc-900 origin-bottom select-none ${
+                  className={`absolute bottom-0 w-[270px] h-[190px] sm:w-72 sm:h-52 rounded-xl sm:rounded-2xl overflow-hidden border bg-zinc-900 origin-bottom select-none ${
                     isFolderOpen
                       ? "pointer-events-auto cursor-grab active:cursor-grabbing"
                       : "pointer-events-none"
                   } ${
                     isCurrentActive
-                      ? "border-red-500/70 shadow-[0_16px_36px_rgba(255,59,48,0.25)]"
-                      : "border-zinc-700/60"
+                      ? "border-red-500 shadow-xl shadow-red-500/20"
+                      : "border-zinc-700/60 shadow-lg"
                   }`}
+                  style={{
+                    display: isMobile && isFolderOpen && isHiddenOnMobile ? "none" : "block",
+                    willChange: "transform, opacity",
+                    transform: "translateZ(0)",
+                    WebkitBackfaceVisibility: "hidden",
+                    backfaceVisibility: "hidden",
+                  }}
                   animate={
                     !isFolderOpen
                       ? {
                           y: stackY,
                           x: stackX,
-                          rotate: stackRotate,
+                          rotate: isMobile ? 0 : stackRotate,
                           scale: stackScale,
                           zIndex: i + 10,
                           opacity: 1,
@@ -248,17 +256,23 @@ export function InteractiveFolderGallery({
                         }
                       : {}
                   }
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  transition={
+                    isMobile
+                      ? { type: "tween", ease: [0.16, 1, 0.3, 1], duration: 0.22 }
+                      : { type: "spring", stiffness: 350, damping: 30 }
+                  }
                 >
                   <img
                     src={photo.image}
                     alt={photo.title || "Certificate"}
+                    decoding="async"
+                    loading="eager"
                     className="w-full h-full object-contain bg-white pointer-events-none select-none p-1"
                   />
 
                   {/* Category Tag Badge */}
                   {photo.tag && (
-                    <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-black/85 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold text-red-400 border border-red-500/40 uppercase tracking-wider shadow-md pointer-events-none">
+                    <span className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-black/90 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold text-red-400 border border-red-500/40 uppercase tracking-wider shadow-md pointer-events-none">
                       {photo.tag}
                     </span>
                   )}
@@ -269,14 +283,15 @@ export function InteractiveFolderGallery({
 
           {/* Folder Front Cover */}
           <motion.div
-            className="absolute bottom-0 w-[290px] sm:w-[340px] max-w-[92vw] h-36 sm:h-44 cursor-pointer z-20 pointer-events-auto drop-shadow-2xl"
+            className="absolute bottom-0 w-[290px] sm:w-[340px] max-w-[92vw] h-36 sm:h-44 cursor-pointer z-20 pointer-events-auto drop-shadow-xl"
             style={{ transformOrigin: "bottom" }}
             animate={{
               opacity: isFolderOpen ? 0 : 1,
-              rotateX: hoverFolder ? -25 : 0,
-              y: hoverFolder ? 10 : 0,
+              rotateX: hoverFolder && !isMobile ? -25 : 0,
+              y: hoverFolder && !isMobile ? 10 : 0,
               pointerEvents: isFolderOpen ? "none" : "auto",
             }}
+            transition={{ duration: 0.2 }}
             onMouseEnter={() => setHoverFolder(true)}
             onMouseLeave={() => setHoverFolder(false)}
             onClick={() => {
@@ -284,10 +299,10 @@ export function InteractiveFolderGallery({
               setActiveMobileIndex(0);
             }}
           >
-            <div className="w-full h-full bg-gradient-to-b from-[#2a2a2a] to-[#111115] rounded-2xl border border-red-500/50 shadow-2xl relative overflow-hidden flex flex-col items-center justify-end pb-5 sm:pb-7 px-4 group">
+            <div className="w-full h-full bg-gradient-to-b from-[#2a2a2a] to-[#111115] rounded-2xl border border-red-500/50 shadow-xl relative overflow-hidden flex flex-col items-center justify-end pb-5 sm:pb-7 px-4 group">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/70 to-transparent" />
 
-              <div className="px-4 py-2 sm:px-5 sm:py-2.5 bg-black/90 rounded-xl border border-red-500/40 shadow-inner flex items-center justify-center backdrop-blur-md transition-transform group-hover:scale-105">
+              <div className="px-4 py-2 sm:px-5 sm:py-2.5 bg-black/90 rounded-xl border border-red-500/40 shadow-inner flex items-center justify-center transition-transform group-hover:scale-105">
                 <span className="text-red-400 font-serif text-xs sm:text-base font-semibold tracking-wide flex items-center gap-1.5 sm:gap-2 line-clamp-1">
                   <span>🏆</span> {folderName}
                 </span>
@@ -304,13 +319,9 @@ export function InteractiveFolderGallery({
 
         {/* Mobile Interactive Controls & Active Certificate Info */}
         {isFolderOpen && isMobile && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-[340px] px-3 flex flex-col items-center text-center mt-2 z-40"
-          >
+          <div className="w-full max-w-[340px] px-3 flex flex-col items-center text-center mt-2 z-40 animate-fadeIn">
             {/* Active Certificate Info */}
-            <div className="bg-zinc-950/80 backdrop-blur-md border border-zinc-800 rounded-xl px-4 py-2.5 w-full shadow-lg mb-2">
+            <div className="bg-zinc-950/95 border border-zinc-800 rounded-xl px-4 py-2.5 w-full shadow-lg mb-2">
               <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-1">
                 <span className="text-red-400 font-bold uppercase tracking-wider text-[10px]">
                   {currentMobilePhoto.tag || "CERTIFICATE"}
@@ -332,7 +343,7 @@ export function InteractiveFolderGallery({
                   setActiveMobileIndex((prev) => Math.max(0, prev - 1))
                 }
                 disabled={activeMobileIndex === 0}
-                className="h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all shadow-md cursor-pointer"
+                className="h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform shadow-md cursor-pointer"
                 aria-label="Previous Certificate"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -363,19 +374,20 @@ export function InteractiveFolderGallery({
                   )
                 }
                 disabled={activeMobileIndex === photos.length - 1}
-                className="h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all shadow-md cursor-pointer"
+                className="h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform shadow-md cursor-pointer"
                 aria-label="Next Certificate"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Global Controls Overlay when Open */}
-        <motion.div
-          animate={{ opacity: isFolderOpen ? 1 : 0, y: isFolderOpen ? 0 : 30 }}
-          className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 pointer-events-auto z-50 mt-1"
+        <div
+          className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-3 pointer-events-auto z-50 mt-1 transition-opacity duration-200 ${
+            isFolderOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
         >
           {/* Close Folder Button */}
           <button
@@ -384,15 +396,15 @@ export function InteractiveFolderGallery({
               setIsFolderOpen(false);
               setHoverFolder(false);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-700 text-zinc-300 text-xs font-semibold hover:bg-zinc-800 hover:text-white transition-all shadow-md cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-zinc-900/95 border border-zinc-700 text-zinc-300 text-xs font-semibold hover:bg-zinc-800 hover:text-white transition-colors shadow-md cursor-pointer"
           >
             <X className="w-3.5 h-3.5 text-red-500" />
             <span>Close Folder</span>
           </button>
 
-          {/* Hint / Drag text */}
-          <div className="px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 backdrop-blur-md text-red-400 text-[11px] font-bold uppercase tracking-wider text-center">
-            {isMobile ? "Swipe left / right to browse • Drag down to close" : dragHintText}
+          {/* Hint text */}
+          <div className="px-3.5 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-[11px] font-bold uppercase tracking-wider text-center">
+            {isMobile ? "Swipe left / right • Swipe down to close" : dragHintText}
           </div>
 
           {/* Enter Full Page Button */}
@@ -403,7 +415,7 @@ export function InteractiveFolderGallery({
             <span>Enter Full Page</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

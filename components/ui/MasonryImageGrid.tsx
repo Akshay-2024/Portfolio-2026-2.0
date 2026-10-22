@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef, startTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Camera } from 'lucide-react';
 
 export interface MasonryImageItem {
   src: string | { src: string; alt?: string };
@@ -40,6 +40,176 @@ export interface MasonryImageGridProps {
   enableInfiniteScroll?: boolean;
   loadMoreCount?: number;
   className?: string;
+}
+
+interface MasonryImageCardProps {
+  image: MasonryImageItem;
+  actualIndex: number;
+  borderRadius: number;
+  enableLightbox: boolean;
+  enableImageHover: boolean;
+  imageHoverOverlayColor: string;
+  imageHoverTextColor: string;
+  imageHoverTextPadding: number;
+  openLightbox: (index: number) => void;
+}
+
+function MasonryImageCard({
+  image,
+  actualIndex,
+  borderRadius,
+  enableLightbox,
+  enableImageHover,
+  imageHoverOverlayColor,
+  imageHoverTextColor,
+  imageHoverTextPadding,
+  openLightbox,
+}: MasonryImageCardProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imageSrc = typeof image.src === 'string' ? image.src : image.src?.src || '';
+  const imageAlt = image.alt || (typeof image.src === 'string' ? '' : image.src?.alt) || image.title || '';
+
+  // Realistic staggered placeholder heights to keep masonry columns aligned before images load
+  const placeholderHeights = [360, 260, 420, 300, 390, 280, 440, 320];
+  const placeholderHeight = placeholderHeights[actualIndex % placeholderHeights.length];
+
+  const imageContent = (
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        minHeight: !isLoaded ? `${placeholderHeight}px` : undefined,
+        backgroundColor: '#14141A',
+        borderRadius: `${borderRadius}px`,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Skeleton Shimmer Placeholder */}
+      {!isLoaded && (
+        <div
+          className="absolute inset-0 bg-[#14141A] border border-zinc-800/80 flex flex-col items-center justify-between p-4 overflow-hidden z-10"
+          style={{
+            borderRadius: `${borderRadius}px`,
+            minHeight: `${placeholderHeight}px`,
+          }}
+          aria-hidden="true"
+        >
+          {/* Shimmer sweep animation */}
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent pointer-events-none animate-skeleton-shimmer"
+            style={{ width: '200%' }}
+          />
+
+          {/* Top subtle badge */}
+          <div className="w-full flex items-center justify-between z-10">
+            <div className="h-4 w-16 rounded-full bg-zinc-800/80 animate-pulse" />
+            <div className="h-4 w-6 rounded-full bg-zinc-800/50 animate-pulse" />
+          </div>
+
+          {/* Center camera watermark */}
+          <div className="flex flex-col items-center justify-center my-auto z-10 opacity-35">
+            <div className="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/40 flex items-center justify-center mb-1.5">
+              <Camera className="w-5 h-5 text-zinc-400" />
+            </div>
+            <div className="h-2 w-14 bg-zinc-800/80 rounded-full animate-pulse" />
+          </div>
+
+          {/* Bottom caption lines */}
+          <div className="w-full flex flex-col gap-1.5 z-10">
+            <div className="h-3 w-3/4 rounded-md bg-zinc-800/70 animate-pulse" />
+            <div className="h-2.5 w-1/2 rounded-md bg-zinc-800/40 animate-pulse" />
+          </div>
+        </div>
+      )}
+
+      {/* Actual Image with smooth fade-in */}
+      <img
+        src={imageSrc}
+        alt={imageAlt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        style={{
+          width: '100%',
+          height: 'auto',
+          display: 'block',
+          borderRadius: `${borderRadius}px`,
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.45s ease-out',
+        }}
+      />
+
+      {enableImageHover && isLoaded && (
+        <motion.div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: imageHoverOverlayColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: `${Math.max(0, imageHoverTextPadding)}px`,
+            borderRadius: `${borderRadius}px`,
+            pointerEvents: 'none',
+          }}
+          initial={{ opacity: 0 }}
+          variants={{ hover: { opacity: 1 } }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <motion.div
+            style={{ color: imageHoverTextColor, textAlign: 'center', width: '100%', fontWeight: 700, fontSize: '15px' }}
+            initial={{ opacity: 0, y: -10 }}
+            variants={{ hover: { opacity: 1, y: 0 } }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {imageAlt || 'View Image'}
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  );
+
+  if (enableLightbox) {
+    return (
+      <motion.button
+        type="button"
+        aria-label={imageAlt ? `Open ${imageAlt}` : `Open image ${actualIndex + 1}`}
+        style={{
+          width: '100%',
+          padding: 0,
+          margin: 0,
+          border: 'none',
+          background: 'none',
+          textAlign: 'left',
+          cursor: 'pointer',
+          borderRadius: `${borderRadius}px`,
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'block',
+        }}
+        onClick={() => openLightbox(actualIndex)}
+        initial="rest"
+        whileHover="hover"
+        animate="rest"
+      >
+        {imageContent}
+      </motion.button>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        position: 'relative',
+        borderRadius: `${borderRadius}px`,
+        overflow: 'hidden',
+      }}
+    >
+      {imageContent}
+    </div>
+  );
 }
 
 export default function MasonryImageGrid({
@@ -277,6 +447,9 @@ export default function MasonryImageGrid({
     }
   }, [lightboxOpen, cancelRaf]);
 
+  const targetIndexRef = useRef<number>(0);
+  const scrollDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
   const scrollToIndex = useCallback((index: number, behavior: ScrollBehavior = 'smooth') => {
     const el = lightboxScrollerRef.current;
     if (!el) return;
@@ -288,29 +461,43 @@ export default function MasonryImageGrid({
     setIsZoomed(false);
   }, []);
 
-  // Sync currentIndex as the user scrolls / swipes on mobile
+  // Sync currentIndex smoothly as the user scrolls / swipes on mobile without fighting the gesture
   const handleScrollerScroll = useCallback(() => {
-    const el = lightboxScrollerRef.current;
-    if (!el) return;
-    const items = el.querySelectorAll("[data-lightbox-item='true']");
-    if (!items.length) return;
-    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
-    let closestIndex = 0;
-    let minDiff = Infinity;
-    items.forEach((item, idx) => {
-      const itemEl = item as HTMLElement;
-      const itemCenter = itemEl.offsetLeft + itemEl.clientWidth / 2;
-      const diff = Math.abs(scrollCenter - itemCenter);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = idx;
-      }
-    });
-    if (closestIndex !== currentIndex) {
-      setCurrentIndex(closestIndex);
-      setIsZoomed(false);
+    if (scrollDebounceRef.current) {
+      clearTimeout(scrollDebounceRef.current);
     }
-  }, [currentIndex]);
+    scrollDebounceRef.current = setTimeout(() => {
+      const el = lightboxScrollerRef.current;
+      if (!el) return;
+      const items = el.querySelectorAll("[data-lightbox-item='true']");
+      if (!items.length) return;
+      const scrollCenter = el.scrollLeft + el.clientWidth / 2;
+      let closestIndex = 0;
+      let minDiff = Infinity;
+      items.forEach((item, idx) => {
+        const itemEl = item as HTMLElement;
+        const itemCenter = itemEl.offsetLeft + itemEl.clientWidth / 2;
+        const diff = Math.abs(scrollCenter - itemCenter);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIndex = idx;
+        }
+      });
+      setCurrentIndex((prev) => {
+        if (prev !== closestIndex) {
+          setIsZoomed(false);
+          return closestIndex;
+        }
+        return prev;
+      });
+    }, 50);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scrollDebounceRef.current) clearTimeout(scrollDebounceRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -346,25 +533,28 @@ export default function MasonryImageGrid({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [lightboxOpen, closeLightbox, currentIndex, images.length, scrollToIndex]);
 
+  // Scroll to the selected image once on open (never interrupts swiping)
   useEffect(() => {
     if (!lightboxOpen) return;
+    const targetIdx = targetIndexRef.current;
     const t =
       typeof window !== 'undefined'
         ? window.setTimeout(() => {
-            scrollToIndex(currentIndex, 'auto');
+            scrollToIndex(targetIdx, 'auto');
             const el = lightboxScrollerRef.current;
             if (el) targetScrollLeftRef.current = el.scrollLeft;
-          }, 60)
+          }, 30)
         : null;
 
     return () => {
       if (typeof window !== 'undefined' && t) window.clearTimeout(t);
     };
-  }, [lightboxOpen, currentIndex, scrollToIndex]);
+  }, [lightboxOpen, scrollToIndex]);
 
   const openLightbox = useCallback(
     (index: number) => {
       if (!enableLightbox) return;
+      targetIndexRef.current = index;
       startTransition(() => {
         setCurrentIndex(index);
         setIsZoomed(false);
@@ -396,91 +586,20 @@ export default function MasonryImageGrid({
       <div style={{ position: 'relative', width: '100%', display: 'flex', gap: `${gap}px`, backgroundColor: 'transparent' }}>
         {columnImages.map((column, colIndex) => (
           <div key={colIndex} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
-            {column.map(({ image, index: actualIndex }) => {
-              const imageSrc = typeof image.src === 'string' ? image.src : image.src?.src || '';
-              const imageAlt = image.alt || (typeof image.src === 'string' ? '' : image.src?.alt) || image.title || '';
-
-              const imageContent = (
-                <>
-                  <img
-                    src={imageSrc}
-                    alt={imageAlt}
-                    style={{ width: '100%', height: 'auto', display: 'block', borderRadius: `${borderRadius}px` }}
-                  />
-                  {enableImageHover && (
-                    <motion.div
-                      aria-hidden="true"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        backgroundColor: imageHoverOverlayColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: `${Math.max(0, imageHoverTextPadding)}px`,
-                        borderRadius: `${borderRadius}px`,
-                        pointerEvents: 'none',
-                      }}
-                      initial={{ opacity: 0 }}
-                      variants={{ hover: { opacity: 1 } }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                      <motion.div
-                        style={{ color: imageHoverTextColor, textAlign: 'center', width: '100%', fontWeight: 700, fontSize: '15px' }}
-                        initial={{ opacity: 0, y: -10 }}
-                        variants={{ hover: { opacity: 1, y: 0 } }}
-                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                      >
-                        {imageAlt || 'View Image'}
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </>
-              );
-
-              if (enableLightbox) {
-                return (
-                  <motion.button
-                    key={actualIndex}
-                    type="button"
-                    aria-label={imageAlt ? `Open ${imageAlt}` : `Open image ${actualIndex + 1}`}
-                    style={{
-                      width: '100%',
-                      padding: 0,
-                      margin: 0,
-                      border: 'none',
-                      background: 'none',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      borderRadius: `${borderRadius}px`,
-                      position: 'relative',
-                      overflow: 'hidden',
-                      display: 'block',
-                    }}
-                    onClick={() => openLightbox(actualIndex)}
-                    initial="rest"
-                    whileHover="hover"
-                    animate="rest"
-                  >
-                    {imageContent}
-                  </motion.button>
-                );
-              }
-
-              return (
-                <div
-                  key={actualIndex}
-                  style={{
-                    width: '100%',
-                    position: 'relative',
-                    borderRadius: `${borderRadius}px`,
-                    overflow: 'hidden',
-                  }}
-                >
-                  {imageContent}
-                </div>
-              );
-            })}
+            {column.map(({ image, index: actualIndex }) => (
+              <MasonryImageCard
+                key={actualIndex}
+                image={image}
+                actualIndex={actualIndex}
+                borderRadius={borderRadius}
+                enableLightbox={enableLightbox}
+                enableImageHover={enableImageHover}
+                imageHoverOverlayColor={imageHoverOverlayColor}
+                imageHoverTextColor={imageHoverTextColor}
+                imageHoverTextPadding={imageHoverTextPadding}
+                openLightbox={openLightbox}
+              />
+            ))}
           </div>
         ))}
       </div>
@@ -779,10 +898,13 @@ export default function MasonryImageGrid({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: isMobile ? '60px 0' : '40px 0',
+                        padding: isMobile ? '40px 0' : '40px 0',
                         boxSizing: 'border-box',
                         scrollSnapAlign: 'center',
-                        scrollSnapStop: 'always',
+                        WebkitBackfaceVisibility: 'hidden',
+                        backfaceVisibility: 'hidden',
+                        transform: 'translateZ(0)',
+                        willChange: 'transform',
                       }}
                       role="listitem"
                       onPointerDown={onLightboxPointerDown}
@@ -793,6 +915,7 @@ export default function MasonryImageGrid({
                       <img
                         src={src}
                         alt={alt}
+                        decoding="async"
                         style={{
                           maxWidth: isMobile ? 'calc(100vw - 32px)' : 'calc(90vw - 80px)',
                           maxHeight: isMobile ? 'calc(100dvh - 160px)' : `${lightboxImageHeight}vh`,
@@ -805,7 +928,9 @@ export default function MasonryImageGrid({
                           pointerEvents: 'auto',
                           boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
                           transform: isZoomed && isCurrent ? 'scale(1.8)' : 'scale(1)',
-                          transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                          transition: isZoomed && isCurrent ? 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
+                          WebkitBackfaceVisibility: 'hidden',
+                          backfaceVisibility: 'hidden',
                           cursor: isCurrent ? (isZoomed ? 'zoom-out' : 'zoom-in') : 'default',
                         }}
                         draggable={false}

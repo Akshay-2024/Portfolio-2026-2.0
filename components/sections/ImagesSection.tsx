@@ -6,13 +6,24 @@ import { Camera, ArrowRight, CameraIcon } from 'lucide-react';
 import { ArcGalleryHero } from '@/components/ui/arc-gallery-hero-component';
 import { collectionsData } from '@/lib/collectionsData';
 
+function getOptimizedThumbnail(url: string, width = 320): string {
+  if (!url) return '';
+  if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', `/upload/w_${width},c_limit,q_auto,f_auto/`);
+  }
+  if (url.includes('unsplash.com')) {
+    return url.replace(/w=\d+/, `w=${width}`);
+  }
+  return url;
+}
+
 export const ImagesSection: React.FC = () => {
   const imageCategory = collectionsData.find((c) => c.id === 'images');
   const imagesList = imageCategory ? imageCategory.items : [];
   const actualCount = imagesList.length;
 
-  // Select top 9 curated images for a clean, perfectly symmetrical arc display on the homepage
-  const arcImages = imagesList.slice(0, 9).map((item) => item.image);
+  // Select top 9 curated images and pre-optimize them to lightweight 20KB thumbnails
+  const arcImages = imagesList.slice(0, 9).map((item) => getOptimizedThumbnail(item.image, 320));
 
   return (
     <section className="w-full py-16 sm:py-24 md:py-32 bg-white text-zinc-900 relative z-20 border-t border-zinc-200 overflow-hidden" id="images">

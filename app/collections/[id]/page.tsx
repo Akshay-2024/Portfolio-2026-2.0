@@ -13,6 +13,7 @@ const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
 import { collectionsData, CollectionItem } from '@/lib/collectionsData';
 import MasonryImageGrid from '@/components/ui/MasonryImageGrid';
 import FilmstripGallery, { type FilmstripImage } from '@/components/ui/filmstrip-gallery';
+import ImagePageSkeleton from '@/components/ui/ImagePageSkeleton';
 
 function VideoCardWithHover({
   item,
@@ -118,6 +119,15 @@ export default function CollectionCategoryPage({
   const [selectedItem, setSelectedItem] = useState<CollectionItem | null>(null);
   const [videoViewMode, setVideoViewMode] = useState<'grid' | 'filmstrip' | 'featured'>('grid');
   const [featuredIndex, setFeaturedIndex] = useState<number>(0);
+  const [isImagesLoaded, setIsImagesLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsImagesLoaded(false);
+    const timer = setTimeout(() => {
+      setIsImagesLoaded(true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [id]);
 
   // Filter States
   const [selectedYear, setSelectedYear] = useState('All Years');
@@ -390,20 +400,24 @@ export default function CollectionCategoryPage({
 
         {/* Collection Items View Render */}
         {category.id === 'images' ? (
-          <MasonryImageGrid
-            images={category.items.map((item) => ({
-              src: item.image,
-              alt: item.title,
-              title: item.title,
-            }))}
-            columns={3}
-            gap={20}
-            borderRadius={20}
-            enableLightbox={true}
-            enableImageHover={true}
-            enableInfiniteScroll={true}
-            loadMoreCount={12}
-          />
+          !isImagesLoaded ? (
+            <ImagePageSkeleton columns={3} gap={20} cardCount={9} />
+          ) : (
+            <MasonryImageGrid
+              images={category.items.map((item) => ({
+                src: item.image,
+                alt: item.title,
+                title: item.title,
+              }))}
+              columns={3}
+              gap={20}
+              borderRadius={20}
+              enableLightbox={true}
+              enableImageHover={true}
+              enableInfiniteScroll={true}
+              loadMoreCount={12}
+            />
+          )
         ) : category.id === 'videos' ? (
           videoViewMode === 'featured' ? (
             <div className="flex flex-col gap-8 my-4">

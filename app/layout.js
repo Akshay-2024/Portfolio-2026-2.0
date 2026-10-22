@@ -1,4 +1,5 @@
 import './globals.css';
+import MainLoader from '../components/ui/MainLoader';
 import PageTransitionLoader from '../components/ui/PageTransitionLoader';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://akshays.me';
@@ -151,6 +152,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <MainLoader />
         <PageTransitionLoader />
         {children}
       </body>
