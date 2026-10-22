@@ -191,34 +191,34 @@ export default function CollectionCategoryPage({
   return (
     <div className="min-h-screen bg-[#0B0B0E] text-zinc-100 font-sans selection:bg-red-500 selection:text-white pb-24">
       {/* Top Header Navigation */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B0B0E]/80 border-b border-zinc-800/80 px-4 sm:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B0B0E]/80 border-b border-zinc-800/80 px-2.5 sm:px-8 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4">
           <Link
             href="/#collections"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-300 hover:text-red-500 transition-colors group self-start sm:self-auto"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-300 hover:text-red-500 transition-colors group self-start sm:self-auto ml-1 sm:ml-0"
           >
-            <div className="h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700/60 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white group-hover:border-red-500 transition-all">
-              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-zinc-900 border border-zinc-700/60 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white group-hover:border-red-500 transition-all">
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:-translate-x-0.5" />
             </div>
             <span>Back to Portfolio</span>
           </Link>
 
-          {/* Category Tabs Quick Switcher */}
-          <div className="flex items-center gap-1 sm:gap-2 bg-zinc-900/90 p-1 rounded-full border border-zinc-800 overflow-x-auto max-w-full scrollbar-none">
+          {/* Category Tabs Quick Switcher - Fitted in Row Without Scroll */}
+          <div className="flex items-center justify-between w-full sm:w-auto bg-zinc-900/90 p-1 rounded-full border border-zinc-800 gap-0.5 sm:gap-2">
             {collectionsData.map((cat) => {
               const isActive = cat.id === category.id;
               return (
                 <Link
                   key={cat.id}
                   href={`/collections/${cat.id}`}
-                  className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap shrink-0 ${
+                  className={`flex-1 sm:flex-initial flex items-center justify-center px-1.5 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs md:text-sm font-medium tracking-tight sm:tracking-normal transition-all whitespace-nowrap text-center ${
                     isActive
                       ? 'bg-red-500 text-white font-bold shadow-lg shadow-red-500/20'
                       : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50'
                   }`}
                 >
-                  <span className="mr-1.5">{cat.icon}</span>
-                  <span>{cat.title}</span>
+                  <span className="mr-1 sm:mr-1.5 text-xs sm:text-sm shrink-0 leading-none">{cat.icon}</span>
+                  <span className="shrink-0">{cat.title}</span>
                 </Link>
               );
             })}
@@ -227,31 +227,31 @@ export default function CollectionCategoryPage({
       </header>
 
       {/* Hero Banner for Collection */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 sm:pt-14">
-        <div className="relative rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-[#14141A] to-[#0F0F13] p-6 sm:p-12 overflow-hidden shadow-2xl mb-8 sm:mb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 pt-5 sm:pt-14">
+        <div className="relative rounded-2xl sm:rounded-3xl border border-zinc-800/80 bg-gradient-to-b from-[#14141A] to-[#0F0F13] p-5 sm:p-10 md:p-12 overflow-hidden shadow-2xl mb-6 sm:mb-12">
           {/* Subtle Ambient Background Glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-5 sm:gap-6">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-500 text-xs font-bold uppercase tracking-wider mb-4">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-500 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-3 sm:mb-4">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                 <span>Curated Collection</span>
               </div>
-              <div className="flex items-center gap-4 mb-3">
-                <span className="text-4xl sm:text-6xl">{category.icon}</span>
-                <h1 className="font-heading text-3xl sm:text-6xl font-extrabold tracking-tight text-white">
+              <div className="flex items-center gap-2.5 sm:gap-4 mb-2.5 sm:mb-3 flex-wrap">
+                <span className="text-3xl sm:text-5xl shrink-0 leading-none">{category.icon}</span>
+                <h1 className="font-heading text-[22px] sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight break-words">
                   {category.title}
                 </h1>
               </div>
-              <p className="text-zinc-400 text-sm sm:text-lg leading-relaxed mt-2">
+              <p className="text-zinc-400 text-xs sm:text-base md:text-lg leading-relaxed mt-1 sm:mt-2">
                 {category.description}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-zinc-900 border border-zinc-800 text-red-500 font-bold text-xs sm:text-sm tracking-wide uppercase">
+            <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
+              <div className="px-3.5 sm:px-5 py-1.5 sm:py-2.5 rounded-xl sm:rounded-2xl bg-zinc-900/90 border border-zinc-800 text-red-500 font-bold text-[11px] sm:text-sm tracking-wide uppercase shadow-sm">
                 {category.itemCount}
               </div>
             </div>

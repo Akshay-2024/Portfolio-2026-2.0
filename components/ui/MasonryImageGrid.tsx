@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef, startTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from 'lucide-react';
 
 export interface MasonryImageItem {
   src: string | { src: string; alt?: string };
@@ -47,7 +48,7 @@ export default function MasonryImageGrid({
   gap = 16,
   borderRadius = 16,
   enableLightbox = true,
-  overlayColor = 'rgba(0, 0, 0, 0.92)',
+  overlayColor = 'rgba(0, 0, 0, 0.95)',
   enableImageHover = true,
   imageHoverOverlayColor = 'rgba(0, 0, 0, 0.45)',
   imageHoverTextColor = '#FFFFFF',
@@ -72,11 +73,24 @@ export default function MasonryImageGrid({
   className = '',
 }: MasonryImageGridProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const lightboxGap = 20;
+  const lightboxGap = 24;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
   const lightboxScrollerRef = useRef<HTMLDivElement | null>(null);
   const [isCloseHover, setIsCloseHover] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Screen detection for responsive layout & touch controls
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [visibleCount, setVisibleCount] = useState(() => {
     const cap = Math.max(0, images.length);
@@ -138,8 +152,11 @@ export default function MasonryImageGrid({
   const lastDragScrollLeftRef = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Desktop mouse drag handlers
   const onLightboxPointerDown = useCallback(
     (e: React.PointerEvent) => {
+      // On mobile / touch screens, allow native smooth swipe + snap
+      if (e.pointerType === 'touch') return;
       const el = lightboxScrollerRef.current;
       if (!el) return;
       cancelRaf();
@@ -159,7 +176,7 @@ export default function MasonryImageGrid({
   );
 
   const onLightboxPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return;
+    if (e.pointerType === 'touch' || !isDraggingRef.current) return;
     const el = lightboxScrollerRef.current;
     if (!el) return;
     const dx = e.clientX - dragStartXRef.current;
@@ -223,7 +240,8 @@ export default function MasonryImageGrid({
     rafRef.current = window.requestAnimationFrame(step);
   }, [smoothness]);
 
-  const onLightboxPointerUp = useCallback(() => {
+  const onLightboxPointerUp = useCallback((e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
     isDraggingRef.current = false;
     startSmoothScrollLoop();
     startTransition(() => setIsDragging(false));
@@ -266,7 +284,33 @@ export default function MasonryImageGrid({
     const child = items.item(index) || null;
     if (!child) return;
     (child as HTMLElement).scrollIntoView({ behavior, inline: 'center', block: 'nearest' });
+    setCurrentIndex(index);
+    setIsZoomed(false);
   }, []);
+
+  // Sync currentIndex as the user scrolls / swipes on mobile
+  const handleScrollerScroll = useCallback(() => {
+    const el = lightboxScrollerRef.current;
+    if (!el) return;
+    const items = el.querySelectorAll("[data-lightbox-item='true']");
+    if (!items.length) return;
+    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
+    let closestIndex = 0;
+    let minDiff = Infinity;
+    items.forEach((item, idx) => {
+      const itemEl = item as HTMLElement;
+      const itemCenter = itemEl.offsetLeft + itemEl.clientWidth / 2;
+      const diff = Math.abs(scrollCenter - itemCenter);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = idx;
+      }
+    });
+    if (closestIndex !== currentIndex) {
+      setCurrentIndex(closestIndex);
+      setIsZoomed(false);
+    }
+  }, [currentIndex]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -282,6 +326,7 @@ export default function MasonryImageGrid({
   const closeLightbox = useCallback(() => {
     startTransition(() => {
       setLightboxOpen(false);
+      setIsZoomed(false);
     });
   }, []);
 
@@ -289,11 +334,17 @@ export default function MasonryImageGrid({
     if (!lightboxOpen) return;
     if (typeof window === 'undefined') return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (e.key === 'ArrowRight') {
+        scrollToIndex(Math.min(images.length - 1, currentIndex + 1));
+      } else if (e.key === 'ArrowLeft') {
+        scrollToIndex(Math.max(0, currentIndex - 1));
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [lightboxOpen, closeLightbox]);
+  }, [lightboxOpen, closeLightbox, currentIndex, images.length, scrollToIndex]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -303,7 +354,7 @@ export default function MasonryImageGrid({
             scrollToIndex(currentIndex, 'auto');
             const el = lightboxScrollerRef.current;
             if (el) targetScrollLeftRef.current = el.scrollLeft;
-          }, 0)
+          }, 60)
         : null;
 
     return () => {
@@ -316,20 +367,23 @@ export default function MasonryImageGrid({
       if (!enableLightbox) return;
       startTransition(() => {
         setCurrentIndex(index);
+        setIsZoomed(false);
         setLightboxOpen(true);
       });
     },
     [enableLightbox]
   );
 
+  const effectiveColumns = isMobile ? Math.min(columns, 2) : columns;
+
   const distributeImages = () => {
     const shownImages = images.slice(0, Math.max(0, Math.min(images.length, Math.max(0, visibleCount))));
     const cols: Array<Array<{ image: MasonryImageItem; index: number }>> = Array.from(
-      { length: columns },
+      { length: effectiveColumns },
       () => []
     );
     shownImages.forEach((image, index) => {
-      cols[index % columns].push({ image, index });
+      cols[index % effectiveColumns].push({ image, index });
     });
     return { cols, shownImages };
   };
@@ -338,6 +392,7 @@ export default function MasonryImageGrid({
 
   return (
     <div className={`relative w-full ${className}`}>
+      {/* Masonry Grid View */}
       <div style={{ position: 'relative', width: '100%', display: 'flex', gap: `${gap}px`, backgroundColor: 'transparent' }}>
         {columnImages.map((column, colIndex) => (
           <div key={colIndex} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: `${gap}px` }}>
@@ -398,23 +453,14 @@ export default function MasonryImageGrid({
                       textAlign: 'left',
                       cursor: 'pointer',
                       borderRadius: `${borderRadius}px`,
-                      overflow: 'hidden',
                       position: 'relative',
+                      overflow: 'hidden',
                       display: 'block',
                     }}
-                    initial={!galleryAnimateIn ? false : { opacity: 0, y: Math.max(0, galleryAnimateDistance) }}
-                    animate={!galleryAnimateIn ? undefined : { opacity: 1, y: 0 }}
-                    transition={
-                      !galleryAnimateIn
-                        ? undefined
-                        : {
-                            duration: Math.max(0.05, galleryAnimateDuration),
-                            ease: [0.22, 1, 0.36, 1],
-                            delay: (Math.max(0, actualIndex) * Math.max(0, galleryAnimateStagger)) / 1000,
-                          }
-                    }
-                    whileHover={!enableImageHover ? undefined : 'hover'}
                     onClick={() => openLightbox(actualIndex)}
+                    initial="rest"
+                    whileHover="hover"
+                    animate="rest"
                   >
                     {imageContent}
                   </motion.button>
@@ -424,7 +470,12 @@ export default function MasonryImageGrid({
               return (
                 <div
                   key={actualIndex}
-                  style={{ width: '100%', borderRadius: `${borderRadius}px`, overflow: 'hidden', position: 'relative' }}
+                  style={{
+                    width: '100%',
+                    position: 'relative',
+                    borderRadius: `${borderRadius}px`,
+                    overflow: 'hidden',
+                  }}
                 >
                   {imageContent}
                 </div>
@@ -443,113 +494,269 @@ export default function MasonryImageGrid({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.25 }}
             style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              inset: 0,
               backgroundColor: overlayColor,
-              backdropFilter: 'blur(16px)',
+              backdropFilter: 'blur(20px)',
               zIndex: 99999,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              paddingTop: `${lightboxPadding.top}px`,
-              paddingRight: `${lightboxPadding.right}px`,
-              paddingBottom: `${lightboxPadding.bottom}px`,
-              paddingLeft: `${lightboxPadding.left}px`,
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
           >
-            {/* Close Button */}
-            <button
-              type="button"
+            {/* Top Bar: Title & Counter badge */}
+            <div
               style={{
                 position: 'absolute',
-                top: '24px',
-                right: '24px',
-                width: `${Math.max(20, closeSize)}px`,
-                height: `${Math.max(20, closeSize)}px`,
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: closeIconBg,
-                color: closeIconColor,
-                cursor: 'pointer',
-                display: 'grid',
-                placeItems: 'center',
-                padding: 0,
-                zIndex: 10001,
-                opacity: isCloseHover ? 0.7 : 1,
-                transition: 'opacity 0.25s ease',
+                top: 'max(16px, env(safe-area-inset-top, 16px))',
+                left: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                zIndex: 10002,
+                maxWidth: 'calc(100% - 130px)',
+                pointerEvents: 'none',
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-                closeLightbox();
-              }}
-              onMouseEnter={() => setIsCloseHover(true)}
-              onMouseLeave={() => setIsCloseHover(false)}
-              aria-label="Close lightbox"
             >
-              <svg
-                width={Math.max(20, closeSize) * 0.5}
-                height={Math.max(20, closeSize) * 0.5}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={Math.max(1, closeIconStroke)}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
+              <div
+                style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  padding: '6px 14px',
+                  borderRadius: 999,
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+                }}
               >
-                <path d="M6 6l12 12" />
-                <path d="M18 6L6 18" />
-              </svg>
-            </button>
+                <span style={{ color: '#FF3B30', fontWeight: 800 }}>
+                  {currentIndex + 1} / {shownImages.length}
+                </span>
+                {shownImages[currentIndex]?.alt && (
+                  <span
+                    style={{
+                      opacity: 0.9,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    • {shownImages[currentIndex].alt}
+                  </span>
+                )}
+              </div>
+            </div>
 
+            {/* Top Right Action Buttons: Zoom Toggle + Close */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 'max(16px, env(safe-area-inset-top, 16px))',
+                right: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                zIndex: 10002,
+              }}
+            >
+              {/* Zoom In / Fit Toggle */}
+              <button
+                type="button"
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: isZoomed ? 'rgba(255, 59, 48, 0.85)' : 'rgba(0, 0, 0, 0.65)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'grid',
+                  placeItems: 'center',
+                  padding: 0,
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsZoomed((prev) => !prev);
+                }}
+                aria-label={isZoomed ? 'Fit to screen' : 'Zoom into image'}
+                title={isZoomed ? 'Fit to screen' : 'Zoom image'}
+              >
+                {isZoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
+              </button>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                  backdropFilter: 'blur(12px)',
+                  color: closeIconColor,
+                  cursor: 'pointer',
+                  display: 'grid',
+                  placeItems: 'center',
+                  padding: 0,
+                  opacity: isCloseHover ? 0.75 : 1,
+                  transition: 'opacity 0.2s ease',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeLightbox();
+                }}
+                onMouseEnter={() => setIsCloseHover(true)}
+                onMouseLeave={() => setIsCloseHover(false)}
+                aria-label="Close lightbox"
+              >
+                <X size={20} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Left / Prev Navigation Arrow */}
+            {currentIndex > 0 && (
+              <button
+                type="button"
+                style={{
+                  position: 'absolute',
+                  left: isMobile ? '8px' : '24px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: isMobile ? '40px' : '50px',
+                  height: isMobile ? '40px' : '50px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'grid',
+                  placeItems: 'center',
+                  padding: 0,
+                  zIndex: 10001,
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToIndex(currentIndex - 1);
+                }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={isMobile ? 22 : 28} />
+              </button>
+            )}
+
+            {/* Right / Next Navigation Arrow */}
+            {currentIndex < shownImages.length - 1 && (
+              <button
+                type="button"
+                style={{
+                  position: 'absolute',
+                  right: isMobile ? '8px' : '24px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: isMobile ? '40px' : '50px',
+                  height: isMobile ? '40px' : '50px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'grid',
+                  placeItems: 'center',
+                  padding: 0,
+                  zIndex: 10001,
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToIndex(currentIndex + 1);
+                }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={isMobile ? 22 : 28} />
+              </button>
+            )}
+
+            {/* Bottom Hint Pill */}
             {showHint && (
               <div
                 style={{
                   position: 'absolute',
                   left: '50%',
-                  bottom: `${Math.max(0, hintBottomOffset)}px`,
+                  bottom: 'max(18px, env(safe-area-inset-bottom, 18px))',
                   transform: 'translateX(-50%)',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
+                  background: 'rgba(0, 0, 0, 0.65)',
+                  backdropFilter: 'blur(12px)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
                   color: hintColor,
-                  padding: '8px 18px',
+                  padding: '7px 18px',
                   borderRadius: 999,
                   zIndex: 10001,
                   pointerEvents: 'none',
                   whiteSpace: 'nowrap',
-                  fontSize: '13px',
+                  fontSize: '12px',
                   fontWeight: 600,
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
                 }}
                 aria-hidden="true"
               >
-                {hintText}
+                {isMobile ? 'Swipe left / right to browse • Tap zoom to inspect' : hintText}
               </div>
             )}
 
-            <div style={{ width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Scroller Canvas */}
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                maxWidth: '100%',
+                maxHeight: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <div
                 id="lightboxScroller"
                 ref={lightboxScrollerRef}
+                onScroll={handleScrollerScroll}
                 style={{
                   width: '100%',
                   height: '100%',
                   overflowX: 'auto',
-                  overflowY: 'hidden',
+                  overflowY: isZoomed ? 'auto' : 'hidden',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: `${lightboxGap}px`,
+                  gap: isMobile ? '16px' : `${lightboxGap}px`,
+                  padding: isMobile ? '0 16px' : '0 40px',
+                  scrollSnapType: isZoomed ? 'none' : 'x mandatory',
                   WebkitOverflowScrolling: 'touch',
-                  cursor: 'default',
+                  cursor: isDragging ? 'grabbing' : 'default',
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
+                  boxSizing: 'border-box',
                 }}
                 aria-label="Lightbox gallery"
                 role="list"
@@ -558,20 +765,24 @@ export default function MasonryImageGrid({
                 {shownImages.map((img, i) => {
                   const src = typeof img.src === 'string' ? img.src : img.src?.src || '';
                   const alt = img.alt || (typeof img.src === 'string' ? '' : img.src?.alt) || img.title || '';
+                  const isCurrent = i === currentIndex;
+
                   return (
                     <div
                       key={i}
                       data-lightbox-item="true"
                       style={{
-                        flex: '0 0 auto',
-                        width: 'auto',
-                        height: `${lightboxImageHeight}%`,
+                        flex: isMobile ? '0 0 100%' : '0 0 auto',
+                        width: isMobile ? '100%' : 'auto',
+                        maxWidth: isMobile ? '100%' : '90vw',
+                        height: '100%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: 0,
+                        padding: isMobile ? '60px 0' : '40px 0',
                         boxSizing: 'border-box',
-                        cursor: isDragging ? 'grabbing' : 'grab',
+                        scrollSnapAlign: 'center',
+                        scrollSnapStop: 'always',
                       }}
                       role="listitem"
                       onPointerDown={onLightboxPointerDown}
@@ -583,17 +794,28 @@ export default function MasonryImageGrid({
                         src={src}
                         alt={alt}
                         style={{
+                          maxWidth: isMobile ? 'calc(100vw - 32px)' : 'calc(90vw - 80px)',
+                          maxHeight: isMobile ? 'calc(100dvh - 160px)' : `${lightboxImageHeight}vh`,
                           width: 'auto',
-                          maxWidth: 'none',
-                          maxHeight: '100%',
-                          height: '100%',
+                          height: 'auto',
                           objectFit: 'contain',
                           borderRadius: `${borderRadius}px`,
                           display: 'block',
                           userSelect: 'none',
                           pointerEvents: 'auto',
+                          boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+                          transform: isZoomed && isCurrent ? 'scale(1.8)' : 'scale(1)',
+                          transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                          cursor: isCurrent ? (isZoomed ? 'zoom-out' : 'zoom-in') : 'default',
                         }}
                         draggable={false}
+                        onClick={() => {
+                          if (isCurrent) {
+                            setIsZoomed((prev) => !prev);
+                          } else {
+                            scrollToIndex(i);
+                          }
+                        }}
                       />
                     </div>
                   );
