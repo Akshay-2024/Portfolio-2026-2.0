@@ -94,7 +94,7 @@ export const MainLoader: React.FC = () => {
         </video>
       </div>
 
-      {/* Subtle Skip Option */}
+      {/* Subtle Skip Option 
       {canSkip && !isExiting && (
         <button
           type="button"
@@ -103,7 +103,7 @@ export const MainLoader: React.FC = () => {
         >
           Skip ✕
         </button>
-      )}
+      )}*/}
     </div>
   );
 };
